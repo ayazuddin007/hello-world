@@ -21,12 +21,27 @@
     <module>webapp</module>
   </modules>
 
+  <!--
   <distributionManagement>
     <site>
       <id>site-server</id>
       <name>Test Project Site</name>
       <url>file:///tmp/maven-project-site</url>
     </site>
+  </distributionManagement>
+-->
+         
+   <distributionManagement>
+    <repository>
+      <id>deployment</id>
+      <name>Internal Release</name>
+      <url>http://13.233.27.224:8081/repository/sample-rel/</url>
+    </repository>
+    <snapshotRepository>
+      <id>deployment</id>
+      <name>Internal Snapshot Release</name>
+      <url>http://13.233.27.224:8081/repository/sample-snap/</url>
+    </snapshotRepository>
   </distributionManagement>
 
   <build>
