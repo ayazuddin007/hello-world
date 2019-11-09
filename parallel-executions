@@ -1,0 +1,12 @@
+node{
+ parallel firstBranch: {
+        stage('one'){
+           git url: 'https://github.com/ayazuddin007/hello-world', branch: 'master' 
+        }
+    }, secondBranch: {
+       stage('Two'){
+           git url: 'https://github.com/ayazuddin007/hello-world', branch: 'feature1'  
+       }
+    },
+    failFast: true
+}
