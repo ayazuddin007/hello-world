@@ -9,10 +9,16 @@ node{
    }
    stage('Deploy to Tomcat'){
     sshagent(['Tomcat']) {
+    
+      //change tomcat ownership to ec2-user
+      // chown -R ec2-user:ec2-user /opt/tomcat
+
       sh "mv webapp/target/*.war webapp/target/myweb.war"
-      sh "scp -o StrictHostKeyChecking=no webapp/target/myweb.war ec2-user@172.31.11.219:/opt/tomcat/webapps/"
-      sh "ssh ec2-user@172.31.11.219 /opt/tomcat/bin/shutdown.sh"
-      sh "ssh ec2-user@172.31.11.219 /opt/tomcat/bin/startup.sh"
+      sh "scp -o StrictHostKeyChecking=no webapp/target/myweb.war ec2-user@<tomcat-server-private-ip>:/opt/tomcat/webapps/"
+      sh "ssh ec2-user@<tomcat-server-private-ip> /opt/tomcat/bin/shutdown.sh"
+      sh "ssh ec2-user@<tomcat-server-private-ip> /opt/tomcat/bin/startup.sh"
+      
+      //check output on browser as http://<tomcat-server-public-ip>:8080/myweb
 
     }
    }
