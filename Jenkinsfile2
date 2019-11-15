@@ -1,0 +1,41 @@
+node {
+    stage ('SCM Checkout') {
+        git 'https://github.com/ayazuddin007/hello-world.git'
+    }
+    stage ('Mvn Compile-Package') {
+       def mvnHome = tool name: 'MAVEN_HOME', type: 'maven'
+       sh "${mvnHome}/bin/mvn clean install package"
+    }
+    stage ('Create Docker Image') {
+        def removeOldDockerContainer = 'docker rm -f mycontainer'
+        def removeOldDockerImage = 'docker rmi ayazway/myimage'
+        def dockerImage = 'docker build -t ayazway/myimage .'
+       
+        sshagent(['dockerHost']) {
+            sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.40.159:/home/ec2-user/"
+           
+            try {
+                sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${removeOldDockerContainer}"
+                sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${removeOldDockerImage}"
+            }catch(error){
+                //  do nothing if there is an exception
+            }
+            
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${dockerImage}"
+        }
+    }
+    stage ('Push Docker Image') {
+        sshagent(['dockerHost']) {
+            withCredentials([string(credentialsId: 'dockerHub', variable: 'dockerHubPwd')]) {
+                sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 docker login -u ayazway -p ${dockerHubPwd}"
+            }
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 docker push ayazway/myimage"
+        }
+    }
+    stage ('Create Docker Container') {
+        def dockerContainer = 'docker run --name mycontainer -d -p 8080:8080 ayazway/myimage'
+        sshagent(['dockerHost']) {
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${dockerContainer}"
+        }
+    }
+}
