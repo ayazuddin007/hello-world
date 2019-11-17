@@ -1,0 +1,18 @@
+--- # task yml
+  - hosts: node
+    user: ec2-user
+    become: yes
+    connection: ssh
+
+    tasks:
+
+      - name: remove docker container
+        command: docker rm -f new-container
+        ignore_errors: yes
+
+      - name: remove docker image
+        command: docker rmi ayazway/new-image
+        ignore_errors: yes
+
+      - name: pulling docker image and creating docker container
+        command: docker run -d --name new-container -p 8080:8080 ayazway/new-image
