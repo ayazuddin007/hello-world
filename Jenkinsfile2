@@ -38,7 +38,7 @@ node {
     stage ('Create Docker Container') {
         def dockerContainer = 'docker run --name mycontainer -d -p 8080:8080 ayazway/myimage'
         sshagent(['dockerHost']) {
-            // Push Docker Container
+            // Create Docker Container
             sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${dockerContainer}"
         }
     }
