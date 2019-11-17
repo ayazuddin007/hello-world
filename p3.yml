@@ -1,0 +1,20 @@
+--- # p1.yml
+  - hosts: local
+    user: ec2-user
+    become: yes
+    connection: ssh
+
+    tasks:
+      
+      - name: create docker image
+        command: docker build -t ayazway/new-image .
+
+      - name: docker hub credentials
+        command: docker login -u "ayazway" -p "${}" docker.io
+
+      - name: push image on to dockerhub
+        command: docker push ayazway/new-image
+
+      - name: remove docker images form ansible server
+        command: docker rmi ayazway/new-image
+        ignore_errors: yes
