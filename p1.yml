@@ -7,7 +7,7 @@
     tasks:
       
       - name: create docker image
-        command: docker build -t ayazway/new-image .
+        command: docker build -t ayazway/new-image:latest .
 
       - name: docker hub credentials
         command: docker login -u "ayazway" -p "Ayaz85044" docker.io
@@ -16,5 +16,5 @@
         command: docker push ayazway/new-image
 
       - name: remove docker images form ansible server
-        command: docker rmi ayazway/new-image
+        command: docker rmi ayazway/new-image:latest
         ignore_errors: yes
