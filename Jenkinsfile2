@@ -12,15 +12,14 @@ node {
         def dockerImage = 'docker build -t ayazway/myimage .'
        
         sshagent(['dockerHost']) {
+            sh "scp -o StrictHostKeyChecking=no Dockerfile ec2-user@172.31.40.159:/home/ec2-user/"
             sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.40.159:/home/ec2-user/"
-           
             try {
                 sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${removeOldDockerContainer}"
                 sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${removeOldDockerImage}"
             }catch(error){
                 //  do nothing if there is an exception
             }
-            
             sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.40.159 ${dockerImage}"
         }
     }
