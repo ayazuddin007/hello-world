@@ -1,0 +1,33 @@
+node {
+    stage ('SCM Checkout') {
+        git 'https://github.com/ayazuddin007/hello-world.git'
+    }
+    stage ('Mvn Compile-Package') {
+       def mvnHome = tool name: 'MAVEN_HOME', type: 'maven'
+       sh "${mvnHome}/bin/mvn clean install package"
+    }
+    stage ('Deploy war to Ansible') {
+        sshagent(['ansibleServer']) {
+            // Copy war file to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.34.135:/home/ec2-user/"
+        }
+    }
+    stage ('Push Docker Image to DockerHub') {
+        def pushDockerImage = 'ansible-playbook -i hosts p1.yml'
+        sshagent(['ansibleServer']) {
+            // Copy Dockerfile and p1.yml to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no Dockerfile p1.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            // Push Docker Image to Docker Hub by Runnning p1.yml on localhost(Ansible)
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${pushDockerImage}"
+        }
+    }
+    stage ('Create Docker Container') {
+        def createDockerContainer = 'ansible-playbook -i hosts p2.yml'
+        sshagent(['ansibleServer']) {
+            // Copy p2.yml to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no p2.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            // Create Docker Container by Runnning p2.yml on Docker-Host
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${createDockerContainer}"
+        }
+    }
+}
