@@ -1,0 +1,33 @@
+node {
+    stage ('SCM Checkout') {
+        git 'https://github.com/ayazuddin007/hello-world.git'
+    }
+    stage ('Mvn Compile-Package') {
+       def mvnHome = tool name: 'MAVEN_HOME', type: 'maven'
+       sh "${mvnHome}/bin/mvn clean install package"
+    }
+    stage ('Deploy war to Ansible') {
+        sshagent(['ansibleServer']) {
+            // Copy war file to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.34.135:/home/ec2-user/"
+        }
+    }
+    stage ('Push Docker Image to DockerHub') {
+        def pushDockerImage = 'ansible-playbook -i hosts p1.yml'
+        sshagent(['ansibleServer']) {
+            // Copy Dockerfile and p1.yml to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no Dockerfile p1.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            // Push Docker Image to Docker Hub by Runnning p1.yml on localhost(Ansible)
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${pushDockerImage}"
+        }
+    }
+    stage ('Deploy to Kubernetes Cluster') {
+        def createK8SDeployment = 'ansible-playbook -i hosts kubernetes-valaxy-deployment.yml'
+        def createK8Service = 'ansible-playbook -i hosts kubernetes-valaxy-service.yml'
+        sshagent(['ansibleServer']) {
+            sh "scp -o StrictHostKeyChecking=no kubernetes-valaxy-deployment.yml kubernetes-valaxy-service.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${createK8SDeployment}"
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${createK8Service}"
+        }
+    }
+}
