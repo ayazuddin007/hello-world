@@ -1,4 +1,4 @@
---- # task yml
+--- # p1.yml
   - hosts: local
     user: ec2-user
     become: yes
