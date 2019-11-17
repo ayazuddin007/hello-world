@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: valaxy-devops-project
-        image: ayazway/new-image:latest
+        image: ayazway/new-image
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
