@@ -5,6 +5,8 @@ node {
     stage ('Mvn Compile-Package') {
         def mvnHome = tool name: 'MAVEN_HOME', type: 'maven'
         sh "${mvnHome}/bin/mvn clean install package"
+        //For checking old war file
+        
         //def current_war_file_path = 'Dev/20191118100519/38/20191118100519-38.war'
         //def current_war_file_name = '20191118100519-38.war'
         //def output_war_file_name = 'webapp'
@@ -43,8 +45,12 @@ node {
 def configure_old_build(String current_war_file_path,String current_war_file_name,String output_war_file_name) {
         def nexus_public_ip = '13.235.77.182'
         def repo_name = 'myrepo'
+        // Download war file from Nexus 
         sh "wget http://${nexus_public_ip}:8081/repository/${repo_name}/${current_war_file_path}"
-        sh "rm -rf webapp/target/webapp.war" // delete old war file
-        sh "mv ${current_war_file_name} webapp/target/" //move nexus latest war file to webapp/target
+        // delete old war file
+        sh "rm -rf webapp/target/webapp.war" 
+        //move nexus latest war file to webapp/target folder
+        sh "mv ${current_war_file_name} webapp/target/" 
+        //rename nexus latest war file to either webapp for previous build and myweb for current build
         sh "mv webapp/target/*.war webapp/target/${output_war_file_name}.war"
     }
