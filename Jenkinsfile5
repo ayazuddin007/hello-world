@@ -9,7 +9,7 @@ node {
         
         //def current_war_file_path = 'Dev/20191118100519/38/20191118100519-38.war'
         //def current_war_file_name = '20191118100519-38.war'
-        //def output_war_file_name = 'webapp'
+        //def output_war_file_name = 'myweb'
         //configure_old_build(current_war_file_path,current_war_file_name,output_war_file_name)
     }
     stage ('Upload Artifact to Nexus ') {
@@ -34,7 +34,7 @@ node {
         configure_old_build(current_war_file_path,current_war_file_name,output_war_file_name)
         sshagent(['Tomcat']) {
            sh "ssh ec2-user@172.31.11.219  sudo chown -R ec2-user:ec2-user /opt/tomcat/"
-           sh "scp -o StrictHostKeyChecking=no webapp/target/myweb.war ec2-user@172.31.11.219:/opt/tomcat/webapps/"
+           sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.11.219:/opt/tomcat/webapps/"
            sh "ssh ec2-user@172.31.11.219 /opt/tomcat/bin/shutdown.sh"
            sh "ssh ec2-user@172.31.11.219 /opt/tomcat/bin/startup.sh"
         }   
