@@ -9,7 +9,7 @@ node {
         
         //def current_war_file_path = 'Dev/20191118100519/38/20191118100519-38.war'
         //def current_war_file_name = '20191118100519-38.war'
-        //def output_war_file_name = 'myweb'
+        //def output_war_file_name = 'webapp'
         //configure_old_build(current_war_file_path,current_war_file_name,output_war_file_name)
     }
     stage ('Upload Artifact to Nexus ') {
