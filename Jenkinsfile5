@@ -16,7 +16,7 @@ node {
         nexusArtifactUploader artifacts: [[
                 artifactId: '$BUILD_TIMESTAMP', 
                 classifier: '', 
-                file: '/var/lib/jenkins/workspace/New-test3/webapp/target/webapp.war', 
+                file: '/var/lib/jenkins/workspace/$JOB_NAME/webapp/target/webapp.war', 
                 type: 'war'
         ]], 
                 credentialsId: 'nexusAdmin', 
