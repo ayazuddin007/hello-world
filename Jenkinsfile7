@@ -1,0 +1,89 @@
+node {
+    stage ('SCM Checkout') {
+        git 'https://github.com/ayazuddin007/hello-world.git'
+    }
+    stage ('Mvn Compile-Package') {
+       def mvnHome = tool name: 'MAVEN_HOME', type: 'maven'
+       sh "${mvnHome}/bin/mvn clean install package"
+        // For checking old war file 
+        // Comment for new build and uncomment for old build
+        //show_old_war_content()
+    }
+    stage('SonarQube Analysis') {
+       def mvnHome =  tool name: 'MAVEN_HOME', type: 'maven'
+        withSonarQubeEnv('SonarQube-Server') {
+            sh "${mvnHome}/bin/mvn sonar:sonar"
+        } 
+    }
+    stage("Quality Gate Status Check"){
+        timeout(time: 1, unit: 'HOURS') {
+            def qg = waitForQualityGate()
+            if (qg.status != 'OK') {
+                error "Pipeline aborted due to quality gate failure: ${qg.status}"
+            }
+        }
+    }  
+    stage ('Upload Artifact to Nexus ') {
+        nexusArtifactUploader artifacts: [[
+                artifactId: '$BUILD_TIMESTAMP', 
+                classifier: '', 
+                file: '/var/lib/jenkins/workspace/$JOB_NAME/webapp/target/webapp.war', 
+                type: 'war'
+        ]], 
+                credentialsId: 'nexusAdmin', 
+                groupId: 'Dev', 
+                nexusUrl: '172.31.9.243:8081', 
+                nexusVersion: 'nexus3', 
+                protocol: 'http', 
+                repository: 'myrepo', 
+                version: '$BUILD_ID'
+    }
+    stage ('Deploy Artifact to Ansible') {
+        def current_war_file_path = 'Dev/$BUILD_TIMESTAMP/$BUILD_ID/$BUILD_TIMESTAMP-$BUILD_ID.war'
+        def current_war_file_name = '$BUILD_TIMESTAMP-$BUILD_ID.war'
+        def output_war_file_name = 'myweb'
+        configure_build(current_war_file_path,current_war_file_name,output_war_file_name)
+        sshagent(['ansibleServer']) {
+        // Copy war file to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no webapp/target/*.war ec2-user@172.31.34.135:/home/ec2-user/"
+        }
+    }
+    stage ('Push Docker Image to DockerHub') {
+        def pushDockerImage = 'ansible-playbook -i hosts p1.yml'
+        sshagent(['ansibleServer']) {
+            // Copy Dockerfile and p1.yml to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no Dockerfile p1.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            // Push Docker Image to Docker Hub by Runnning p1.yml on localhost(Ansible)
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${pushDockerImage}"
+        }
+    }
+    stage ('Create Docker Container') {
+        def createDockerContainer = 'ansible-playbook -i hosts p2.yml'
+        sshagent(['ansibleServer']) {
+            // Copy p2.yml to Ansible Server
+            sh "scp -o StrictHostKeyChecking=no p2.yml ec2-user@172.31.34.135:/home/ec2-user/"
+            // Create Docker Container by Runnning p2.yml on Docker-Host
+            sh "ssh -o StrictHostKeyChecking=no ec2-user@172.31.34.135 ${createDockerContainer}"
+        }
+    }
+}
+
+def configure_build(String current_war_file_path,String current_war_file_name,String output_war_file_name) {
+    def nexus_public_ip = '13.233.199.30'
+    def repo_name = 'myrepo'
+    // Download war file from Nexus 
+    sh "wget http://${nexus_public_ip}:8081/repository/${repo_name}/${current_war_file_path}"
+    // delete old war file
+    sh "rm -rf webapp/target/webapp.war" 
+    //move nexus latest war file to webapp/target folder
+    sh "mv ${current_war_file_name} webapp/target/" 
+    //rename nexus latest war file to either webapp for previous build and myweb for current build
+    sh "mv webapp/target/*.war webapp/target/${output_war_file_name}.war"
+}
+
+def show_old_war_content(){
+    def current_war_file_path = 'Dev/20191119102830/8/20191119102830-8.war'
+    def current_war_file_name = '20191119102830-8.war'
+    def output_war_file_name = 'webapp'
+    configure_build(current_war_file_path,current_war_file_name,output_war_file_name)
+}
