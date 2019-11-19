@@ -21,4 +21,11 @@ node{
             }
         }
     }   
+    
+    // create sonarqube webhook
+    // Go to sonarqube dashboard > Administration > scroll down below > webhooks
+     // create webhooks
+     // Name: jenkins-server
+     // URL: http://<jenkins-server public ip>:8080/sonarqube-webhook/
+     //click on ok
 }
