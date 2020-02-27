@@ -1,0 +1,17 @@
+//Get rid of your parameters, they are not needed (would stop you from automation).
+//Have a manual input in the deploy to prod stage
+
+pipeline {
+    agent any
+    stages {
+        stage('Deploy to prod') {
+            input {
+                message "Should we continue?"
+                ok "Yes, we should."
+            }
+            steps {
+                echo "Deploying."
+            }
+        }
+    }
+}
