@@ -1,0 +1,120 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            choices: ['Dev', 'Staging', 'Production'],
+            description: 'Choose which environment to push changes to.',
+            name: 'DEPLOY_TO')
+        booleanParam (
+            defaultValue: true,
+            description: 'Choose whether to deploy the database.',
+            name : 'DEPLOY_DB')
+    }
+    
+    environment {
+        SITEID = "lb"
+        NOFLAGS = "0"
+        DBNAME = "wpress_myproject"
+        DBSERVER = "dbserver"
+        DBUSER = "WordpressUser"
+        DBPASS = "hiddenpassword"
+        EXCLUDE = "domain_commentmeta,domain_comments"  // separate multiple tables with commas
+        DEPLOY_TO = "${params.DEPLOY_TO}"
+        DEPLOY_DB = "${params.DEPLOY_DB}"
+    }
+    
+    stages {
+        stage('Build') { 
+            steps { 
+                sh 'echo "Build"' 
+            }
+        }
+        stage('Test'){
+            steps {
+                sh 'echo "Test"'
+            }
+        }
+        stage("deploy-db-dev") {
+            when {
+                allOf { 
+                    environment ignoreCase: true, name: "DEPLOY_TO", value: "dev"; 
+                    environment ignoreCase: true, name: "DEPLOY_DB", value: "true"; 
+                }
+            }
+            steps {
+                
+                script {
+                    echo "Dev DBServer"   
+                }
+                
+            }
+        }  
+        
+        stage("deploy-dev") {
+            when {
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "dev"
+            }
+            steps {
+                // copy files to devserver2
+                sh 'echo "Dev Server"'
+            }
+        }
+        
+        
+        stage("deploy-db-staging") {
+            when {
+                allOf { 
+                    environment ignoreCase: true, name: "DEPLOY_TO", value: "staging"; 
+                    environment ignoreCase: true, name: "DEPLOY_DB", value: "true"; 
+                }
+            }
+            steps {
+                script {
+                    echo "Staging DBServer"   
+                }
+            }
+        }  
+        
+        stage("deploy-staging") {
+            when {
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "staging"
+            }
+            steps {
+                // copy files to staging server
+               
+                sh 'echo "Staging Server"'
+               
+            }
+        }
+        
+         stage("deploy-db-production") {
+            when {
+                allOf { 
+                    environment ignoreCase: true, name: "DEPLOY_TO", value: "production"; 
+                    environment ignoreCase: true, name: "DEPLOY_DB", value: "true"; 
+                }
+            }
+            steps {
+                script {
+                    echo "Production DBServer"   
+                }
+            }
+        }  
+        
+        stage("deploy-production") {
+            when {
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "production"
+            }
+            steps {
+                // copy files to production server
+               
+                sh 'echo "Production Server"'
+               
+            }
+        }
+        
+        
+        
+    }
+}
