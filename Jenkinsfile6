@@ -16,6 +16,10 @@ node{
    stage("Quality Gate Status Check"){
         timeout(time: 1, unit: 'HOURS') {
             def qg = waitForQualityGate()
+            
+            // We can paste email section code here
+            // For sending email to everyone on sonarqube quality gate failure
+            
             if (qg.status != 'OK') {
                 error "Pipeline aborted due to quality gate failure: ${qg.status}"
             }
