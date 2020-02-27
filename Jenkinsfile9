@@ -1,0 +1,20 @@
+//This should be multibranch pipeline project in Jenkins (since you want to it on all branches)
+//if you want to use different stages for different branches do use when
+pipeline {
+    agent any
+    stages {
+        stage('Example Build') {
+            steps {
+                echo 'Hello World'
+            }
+        }
+        stage('Example Deploy') {
+            when {
+                branch 'production'
+            }
+            steps {
+                echo 'Deploying'
+            }
+        }
+    }
+}
