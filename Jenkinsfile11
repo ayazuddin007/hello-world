@@ -9,8 +9,6 @@ pipeline {
     }
     
     environment {
-        SITEID = "lb"
-        NOFLAGS = "0"
         DEPLOY_TO = "${params.DEPLOY_TO}"
     }
     
@@ -29,7 +27,7 @@ pipeline {
         
         stage("Deploy to Dev") {
             when {
-                environment ignoreCase: true, name: "DEPLOY_TO", value: "dev"
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "Dev"
             }
             steps {
                 // copy files to devserver2
@@ -39,7 +37,7 @@ pipeline {
        
        stage("Deploy to QA") {
             when {
-                environment ignoreCase: true, name: "DEPLOY_TO", value: "staging"
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "QA"
             }
             steps {
                 // copy files to staging server
@@ -49,7 +47,7 @@ pipeline {
        
         stage("Deploy to Staging") {
             when {
-                environment ignoreCase: true, name: "DEPLOY_TO", value: "staging"
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "Staging"
             }
             steps {
                 // copy files to staging server
@@ -59,11 +57,11 @@ pipeline {
         
         stage("Deploy to Production") {
             when {
-                environment ignoreCase: true, name: "DEPLOY_TO", value: "production"
+                environment ignoreCase: true, name: "DEPLOY_TO", value: "Production"
             }
             steps {
                 // copy files to production server
-                sh 'echo "Production Server"
+                sh 'echo "Production Server"'
             }
         }
         
