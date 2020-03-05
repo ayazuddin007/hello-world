@@ -1,0 +1,40 @@
+// Send email on jenkins declarative pipeline failure
+
+pipeline {
+    agent any
+
+    stages {
+
+        // Normal Stages
+
+        stage ('success'){
+            steps {
+                script {
+                    currentBuild.result = 'SUCCESS'
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            script {
+                currentBuild.result = 'FAILURE'
+            }
+        }
+
+        always {
+            step([$class: 'Mailer',
+                notifyEveryUnstableBuild: true,
+                recipients: "baptiste.wicht@gmail.com",
+                sendToIndividuals: true])
+        }
+    }
+}
+
+
+//There are two important things here. First, a new stage (success) is added that simply set the result of the 
+//current build to SUCCESS once it is done. It must be the last stage on the pipeline. 
+//This could also be added as the last step of the last stage instead of adding a new stage, but I think it's clearer like this. 
+//The second thing is the failure block in which the result of the current build is set to FAILURE. With these two things, 
+//the Mailer plugin now sends notification when a build has been fixed.
