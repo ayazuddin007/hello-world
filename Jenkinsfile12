@@ -6,6 +6,17 @@ pipeline {
     stages {
 
         // Normal Stages
+        
+        stage('Build') { 
+            steps { 
+                sh 'echo "Build"' 
+            }
+        }
+        stage('Test'){
+            steps {
+                sh 'echo "Test"'
+            }
+        }
 
         stage ('success'){
             steps {
